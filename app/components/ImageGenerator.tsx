@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties, useState, useRef, ChangeEvent } from "react";
+import { CSSProperties, useState, useRef } from "react";
 import {
   generateRandomGradientStyle,
   generateRandomSolidStyle,
@@ -12,6 +12,8 @@ import html2canvas from "html2canvas";
 import saveAs from "file-saver";
 import { formattedDate } from "../utils/date";
 import { useInput } from "../hooks/useInput";
+import ImagePreview from "./ImagePreview";
+import RowTitle from "./RowTitle";
 
 export default function ImageGenerator() {
   const { inputValues, handleInputChange } = useInput({
@@ -21,7 +23,9 @@ export default function ImageGenerator() {
   });
   const [imageUrl, setImageUrl] = useState<string>("");
   const [backgroundStyle, setBackgroundStyle] = useState<CSSProperties>({
-    textUnderlineOffset: "8px",
+    padding: "8px",
+    border: "1px solid black",
+    margin: "0",
   });
   const [showModal, setShowModal] = useState<boolean>(false);
 
@@ -29,6 +33,7 @@ export default function ImageGenerator() {
 
   const generateImage = async () => {
     if (!divImageRef.current) return;
+
     try {
       const imageRef = divImageRef.current;
       const canvas = await html2canvas(imageRef, { scale: 2 });
@@ -47,6 +52,7 @@ export default function ImageGenerator() {
     setBackgroundStyle({
       ...backgroundStyle,
       background: generateRandomSolidStyle(randomColor),
+      border: "none",
     });
   };
 
@@ -62,6 +68,7 @@ export default function ImageGenerator() {
     setBackgroundStyle({
       ...backgroundStyle,
       background: gradientStyle,
+      border: "none",
     });
   };
 
@@ -83,15 +90,32 @@ export default function ImageGenerator() {
     setShowModal(false);
   };
 
-  const rowStyle = `flex md:flex-row gap-4 mx-auto justify-between w-full items-center`;
+  const textToWhite = () => {
+    setBackgroundStyle({ ...backgroundStyle, color: "white" });
+  };
+
+  const textToBlack = () => {
+    setBackgroundStyle({ ...backgroundStyle, color: "black" });
+  };
+
+  const textToShadow = () => {
+    setBackgroundStyle({
+      ...backgroundStyle,
+      textShadow: backgroundStyle.textShadow
+        ? ""
+        : `rgba(0, 0, 0, 0.4) 2px 2px 4px`,
+    });
+  };
+
+  const rowStyle = `flex flex-col md:flex-row gap-4 mx-auto justify-between w-full items-center border-y py-4`;
   const inputStyle = `border-2 border-blue-500 w-full md:w-1/3 rounded-md p-1 placeholder:italic placeholder:text-slate-400 block bg-white rounded-md shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500 focus:ring-1 sm:text-sm`;
-  const buttonStyle = `bg-blue-500 rounded-md p-1 text-white w-1/3`;
+  const buttonStyle = `bg-blue-500 rounded-md p-1 text-white w-4/5 mx-auto md:w-1/3 shadow-lg`;
 
   return (
     <>
-      <div className="flex flex-col space-y-6 mx-auto w-10/12">
-        <div className={`${rowStyle} flex-col`}>
-          <span className="w-full md:w-1/4">내용 입력</span>
+      <div className="flex flex-col mx-auto max-w-3xl">
+        <div className={`${rowStyle}`}>
+          <RowTitle title="내용 입력" />
           <input
             id="title"
             type="text"
@@ -123,9 +147,8 @@ export default function ImageGenerator() {
             onChange={handleInputChange}
           />
         </div>
-        <hr />
         <div className={rowStyle}>
-          <span className="w-1/4">배경 설정</span>
+          <RowTitle title="배경 설정" />
           <button
             type="button"
             className={buttonStyle}
@@ -143,40 +166,37 @@ export default function ImageGenerator() {
           <button
             id="image"
             type="button"
-            value={imageUrl}
             className={buttonStyle}
             onClick={openModal}
           >
             이미지 URL
           </button>
         </div>
-        <hr className="my-4" />
-        <div className="flex flex-col">
-          <div
-            className="w-full max-w-3xl h-96 mx-auto flex flex-col justify-between bg-black"
-            style={backgroundStyle}
-            ref={divImageRef}
-          >
-            <div className="h-2/3 justify-center flex flex-col rounded-t-lg">
-              <h1 className="text-white text-center text-4xl mt-10 underline underline-offset-8">
-                {inputValues.title || "제목을 입력하세요"}
-              </h1>
-              <h2 className="text-white text-center text-2xl mt-10 underline underline-offset-8">
-                {inputValues.subTitle || "부제목을 입력하세요"}
-              </h2>
-            </div>
-            <div className="text-center mb-4 ">
-              <p className="text-white w-full underline underline-offset-8">
-                {inputValues.tag || "태그를 입력하세요"}
-              </p>
-            </div>
-          </div>
+        <div className={`${rowStyle} mb-4`}>
+          <RowTitle title="텍스트 설정" />
+          <button type="button" className={buttonStyle} onClick={textToShadow}>
+            그림자
+          </button>
+          <button type="button" className={buttonStyle} onClick={textToWhite}>
+            흰색
+          </button>
+          <button type="button" className={buttonStyle} onClick={textToBlack}>
+            검은색
+          </button>
         </div>
+        <ImagePreview
+          title={inputValues.title}
+          subTitle={inputValues.subTitle}
+          tag={inputValues.tag}
+          backgroundStyle={backgroundStyle}
+          ref={divImageRef}
+        />
+
         <button
-          className={`${buttonStyle} mx-auto p-4`}
+          className={`${buttonStyle} p-4 mt-5`}
           onClick={generateImage}
         >
-          Generate
+          저장하기
         </button>
       </div>
 
