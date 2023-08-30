@@ -8,7 +8,7 @@ import {
   getRandomDirection,
 } from "../utils/color";
 import Modal from "./Modal";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import saveAs from "file-saver";
 import { formattedDate } from "../utils/date";
 import { useInput } from "../hooks/useInput";
@@ -31,20 +31,16 @@ export default function ImageGenerator() {
 
   const divImageRef = useRef<HTMLDivElement>(null);
 
-  const generateImage = async () => {
-    if (!divImageRef.current) return;
-
-    try {
-      const imageRef = divImageRef.current;
-      const canvas = await html2canvas(imageRef, { scale: 2 });
-      canvas.toBlob((blob) => {
-        if (blob !== null) {
-          saveAs(blob, `thumbnail-${formattedDate}.png`);
-        }
+  const htmlToImageConvert = () => {
+    const imageRef = divImageRef.current;
+    if (!imageRef) return;
+    toPng(imageRef, { cacheBust: false })
+      .then((dataUrl) => {
+        saveAs(dataUrl, `thumbnail-${formattedDate}.png`)
+      })
+      .catch((err) => {
+        console.error(err);
       });
-    } catch (error) {
-      console.error("Error converting div to Image", error);
-    }
   };
 
   const generateRandomColorBackground = () => {
@@ -73,10 +69,13 @@ export default function ImageGenerator() {
   };
 
   const generateImageBackground = () => {
+
     setBackgroundStyle({
       ...backgroundStyle,
       backgroundImage: `url(${imageUrl})`,
       backgroundSize: "cover",
+      backgroundRepeat: "no-repeat",
+      border: "none",
     });
 
     setShowModal(false);
@@ -194,7 +193,7 @@ export default function ImageGenerator() {
 
         <button
           className={`${buttonStyle} p-4 mt-5`}
-          onClick={generateImage}
+          onClick={htmlToImageConvert}
         >
           저장하기
         </button>
