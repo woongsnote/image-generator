@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
 
 export default function Modal({
@@ -29,10 +28,6 @@ export default function Modal({
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
           />
-
-          <Link href="https://unsplash.com/wallpapers" className="mt-4 text-sm">Unsplash 바로가기</Link>
-
-
 
           <div className="flex flex-row justify-center gap-12 items-center mt-2">
             <button
